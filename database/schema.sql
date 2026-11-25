@@ -33,3 +33,19 @@ create policy amicao_storage_read on storage.objects for select to authenticated
 create policy amicao_storage_insert on storage.objects for insert to authenticated with check(bucket_id='amicao-images' and public.is_active() and exists(select 1 from public.records r where r.id::text=split_part(storage.objects.name,'/',1) and r.deleted_at is null));
 create policy amicao_storage_delete on storage.objects for delete to authenticated using(bucket_id='amicao-images' and public.is_active() and (public.is_admin() or (owner_id=auth.uid()::text and not exists(select 1 from public.record_images i where i.path=name))));
 commit;
+
+BEGIN;
+CREATE OR REPLACE FUNCTION public.amicao_dashboard_counts()
+RETURNS jsonb LANGUAGE sql STABLE SECURITY INVOKER SET search_path = '' AS $$
+ SELECT jsonb_build_object(
+  'adocao', count(*) FILTER (WHERE category='adocao'),
+  'restricao', count(*) FILTER (WHERE category='restricao'),
+  'usuarios_ativos', CASE WHEN public.is_admin() THEN (SELECT count(*) FROM public.profiles WHERE active) ELSE NULL END
+ ) FROM public.records WHERE deleted_at IS NULL;
+$$;
+REVOKE ALL ON FUNCTION public.amicao_dashboard_counts() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.amicao_dashboard_counts() TO authenticated;
+CREATE INDEX IF NOT EXISTS amicao_records_active_updated_idx ON public.records (updated_at DESC,id DESC) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS amicao_records_active_category_updated_idx ON public.records (category,updated_at DESC,id DESC) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS amicao_record_images_latest_idx ON public.record_images (record_id,created_at DESC,id DESC);
+COMMIT;

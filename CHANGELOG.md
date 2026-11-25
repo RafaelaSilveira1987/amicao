@@ -39,3 +39,8 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 - Alias Apache para /amicao/ e redirecionamento 308 para caminho com barra final.
 - Cookie de sessão exclusivo AMICAOSESSID.
 - Sem alteração de regras de negócio ou banco.
+
+## v1.0.5
+- Dashboard: 3 chamadas previstas em sessão válida, consulta de miniatura embutida, RPC de totais com RLS e índices.
+- cURL reutilizado, bloqueio de sessão liberado em GET autenticado, Server-Timing, logo compactada, cache de assets e OPcache no Docker, mensagens de login.
+- Migration obrigatória para banco existente. Homologação real pendente.

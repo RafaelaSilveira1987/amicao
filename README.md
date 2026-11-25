@@ -45,3 +45,8 @@ Rodapé institucional no login e painel. Preserve app/config.php no WAMP; no Eas
 
 ## Compartilhamento (v1.0.4.4)
 Após novo deploy, teste em janela anônima https://rsdigitallab.com/amicao/assets/og-cover.jpg e confira as tags og:image no código-fonte da tela de login. Compartilhe https://rsdigitallab.com/amicao/?v=1044 para tentar contornar o cache antigo. A URL OG está definida para o domínio de produção no public/index.php; ajuste se mudar o domínio. Nenhuma migration necessária.
+
+## v1.0.5 — desempenho
+Banco existente: execute apenas database/migration-v1.0.5.sql antes de publicar. Não execute schema.sql novamente. Instalação nova: schema.sql já inclui a função. Preserve app/config.php no WAMP, reinicie e faça novo build Docker no EasyPanel.
+Dashboard: consulta perfil, registros com primeira foto via relacionamento e função de totais (três requisições em sessão válida, sem renovação). RLS permanece ativa; função SECURITY INVOKER. Imagens continuam privadas e sem cache público. PHP reutiliza conexão cURL dentro da requisição e libera a sessão em leituras após validação. Assets públicos recebem cache de uma hora no Docker e versão de URL; logo compactada.
+No DevTools > Network > dashboard > Headers, consulte Server-Timing: supabase (ms acumulados), api_calls (quantidade). Compare 5 navegações antes/depois com o mesmo usuário, volume e dispositivo, sem misturar cache frio e quente. Teste perfil inativo, usuário comum, totais, filtros, paginação, upload, transferência, galeria, logout, links e OG. Não há medição real nem build Docker executado neste ambiente.
