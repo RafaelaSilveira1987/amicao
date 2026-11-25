@@ -68,3 +68,9 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 - Visão geral sem seção Busca de Cadastro e sem consulta de registros/miniaturas; indicadores e novo cadastro preservados.
 - Busca por trecho do nome do tutor, sem distinção de maiúsculas/minúsculas, em cada lista, com paginação e limpar busca.
 - Sem filtros por animal, raça ou cor. Sem migration.
+
+
+## v1.0.6.5
+- Removido o subtítulo Gestão de adoções do menu lateral.
+- Visão geral compactada em desktop, com rolagem natural em telas menores e conteúdo excedente.
+- Cache CSS atualizado. Sem migration.

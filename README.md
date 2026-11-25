@@ -69,3 +69,9 @@ Se a v1.0.6.1 já estiver instalada, substitua somente os arquivos, preserve app
 
 ## v1.0.6.4 — busca por tutor
 Preserve app/config.php. Não execute migration nova. Visão geral mostra os indicadores e novo cadastro, sem tabela ou busca. Em cada lista, use o campo Nome do tutor e Buscar; Limpar restaura a lista. A busca fica restrita à categoria e aceita parte do nome, sem distinção de maiúsculas/minúsculas (não normaliza acentos). Teste resultados, ausência de resultados, limpar, paginação, ações e indicadores. Homologação real pendente.
+
+
+## v1.0.6.5
+- Removido o subtítulo Gestão de adoções do menu lateral.
+- Visão geral compactada em desktop, com rolagem natural em telas menores e conteúdo excedente.
+- Cache CSS atualizado. Sem migration.
