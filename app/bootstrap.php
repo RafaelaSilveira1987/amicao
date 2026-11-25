@@ -47,3 +47,25 @@ function local_history_date($value):string {
     try{return (new DateTimeImmutable((string)$value))->setTimezone(new DateTimeZone('America/Sao_Paulo'))->format('d/m/Y H:i:s');}catch(Throwable $e){return '—';}
 }
 function category_label($v):string{return ['adocao'=>'Adoção responsável','restricao'=>'Restrição'][$v??'']??'—';}
+
+function edit_team_user(array $input, array $actor): bool {
+    global $config;
+    if(($actor['role']??'')!=='admin'||empty($actor['active']))throw new RuntimeException('Acesso negado.');
+    $id=uuid($input['id']??'');
+    $target=api('GET','profiles?id=eq.'.$id)[0]??null;
+    if(!$target)throw new RuntimeException('Usuário não encontrado.');
+    $name=trim((string)($input['name']??'')); $phone=trim((string)($input['phone']??''));
+    $email=trim((string)($input['email']??'')); $password=(string)($input['password']??'');
+    if($name===''||strlen($name)>200||strlen($phone)>50||!filter_var($email,FILTER_VALIDATE_EMAIL)||strlen($email)>254||($password!==''&&(strlen($password)<8||strlen($password)>72)))throw new RuntimeException('Informe nome, e-mail válido e, se desejar trocar a senha, utilize de 8 a 72 bytes.');
+    $service=getenv('SUPABASE_SERVICE_ROLE_KEY')?:($config['service_role_key']??'');
+    if(!$service)throw new RuntimeException('Edição de usuários indisponível: configure a chave administrativa no servidor.');
+    $emailChanged=strcasecmp($email,(string)($target['email']??''))!==0;
+    $data=['app_metadata'=>['amicao_profile'=>['name'=>$name,'phone'=>$phone,'revision'=>bin2hex(random_bytes(12))]]];
+    if($emailChanged){$data['email']=$email;$data['email_confirm']=true;}
+    if($password!=='')$data['password']=$password;
+    try {req('PUT','/auth/v1/admin/users/'.$id,$data,$service,'application/json',false,false,$service);}
+    catch(RuntimeException $e){throw new RuntimeException('Não foi possível atualizar a conta. Confira se o e-mail já existe, os requisitos da senha e os logs de Auth.');}
+    $saved=api('GET','profiles?id=eq.'.$id)[0]??null;
+    if(!$saved||$saved['name']!==$name||(string)$saved['phone']!==$phone||strcasecmp((string)$saved['email'],$email)!==0)throw new RuntimeException('A conta foi atualizada no Auth, mas o perfil não foi confirmado. Confira a migration v1.0.6.1 antes de repetir a operação.');
+    return $id===$actor['id']&&($emailChanged||$password!=='');
+}

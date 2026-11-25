@@ -49,3 +49,6 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 - Histórico com data local e nomes preservados.
 - Novo cadastro apenas na visão geral.
 - Criação administrativa de contas via Supabase Auth.
+
+## v1.0.6.1
+- Edição administrativa de nome, telefone, e-mail e senha opcional; sincronização Auth/perfil por migration.
