@@ -1,4 +1,4 @@
-# Amicão Muriaé — v1.0.1
+# Amicão Muriaé — v1.0.4.1
 PHP 8.2+, HTML, CSS, JS, Supabase. Instalação inicial em projeto Supabase novo e dedicado (não executar em banco existente sem revisão). O banco PostgreSQL já existe quando o projeto Supabase é criado.
 
 ## Supabase
@@ -32,3 +32,12 @@ Em bancos existentes execute somente database/migration-v1.0.3.sql no SQL Editor
 
 ## Atualização v1.0.4
 Preserve app/config.php. Substitua os arquivos, reinicie WAMP e pressione Ctrl+F5. Não execute schema.sql sobre banco existente. Caso ainda não aplicada, a migration v1.0.3 permanece necessária. Teste totais, filtros exatos, visualizar, editar, miniaturas, galeria, upload e transferência.
+
+## Atualização v1.0.4.1 (EasyPanel)
+Substitua o Dockerfile no GitHub e faça novo build usando Dockerfile. Porta 80, HTTPS, SUPABASE_URL, SUPABASE_KEY e COOKIE_SECURE=1. DocumentRoot é /var/www/html/public; app e database ficam fora da raiz pública. Não execute SQL novamente. Verifique /, /app/bootstrap.php e /database/schema.sql (estes dois últimos devem retornar 404 ou 403). Valide login, imagens e transferências.
+
+## Atualização v1.0.4.2 (subdiretório)
+O Apache aceita / e /amicao/; /amicao redireciona com 308 para /amicao/. O alias aponta exclusivamente para public. Os links e assets já são relativos. Não configure APP_BASE_PATH; não é necessário. Configure o domínio EasyPanel com caminho /amicao, destino /, porta 80. Se o proxy remover o prefixo, use a URL pública com barra final. Se /amicao sem barra continuar falhando, verifique o caminho efetivamente recebido nos logs do container e as regras do proxy. A sessão usa AMICAOSESSID para evitar colisão com outros projetos; será necessário entrar novamente. Não execute migrations. Teste também /amicao/app/bootstrap.php e /amicao/database/schema.sql (404/403).
+
+## Atualização v1.0.4.3
+Rodapé institucional no login e painel. Preserve app/config.php no WAMP; no EasyPanel faça novo deploy. Sem migration.

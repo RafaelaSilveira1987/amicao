@@ -1,3 +1,7 @@
+## v1.0.4.3
+- Rodapé institucional com crédito Desenvolvido por RS Digital Lab e link para o site, no login e nas páginas autenticadas.
+- CSS responsivo e cache busting. Mantém Dockerfile e SQL da v1.0.4.2.
+
 # v1.0.4
 - Dashboard com totais exatos via PostgREST, perfil e navegação visual.
 - Ações Visualizar e Editar separadas, miniaturas privadas e galeria.
@@ -22,3 +26,11 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 
 ## v1.0.3
 - Corrige referência ambígua ao nome do objeto nas políticas de leitura e inclusão do Storage. Instalações existentes: executar database/migration-v1.0.3.sql.
+
+## v1.0.4.1
+- Corrige deploy Apache: habilita mod_rewrite, configura DocumentRoot literal em public, bloqueia raiz privada, desativa leitura de .htaccess no container e define ServerName. Sem mudanças no PHP, JS ou SQL.
+
+## v1.0.4.2
+- Alias Apache para /amicao/ e redirecionamento 308 para caminho com barra final.
+- Cookie de sessão exclusivo AMICAOSESSID.
+- Sem alteração de regras de negócio ou banco.

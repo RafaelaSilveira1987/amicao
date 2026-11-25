@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 ini_set('session.use_strict_mode','1');
+session_name('AMICAOSESSID');
 session_set_cookie_params(['httponly'=>true,'secure'=>!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS']!=='off' || getenv('COOKIE_SECURE')==='1','samesite'=>'Lax']); session_start();
 $config=file_exists(__DIR__.'/config.php')?require __DIR__.'/config.php':[];
 $url=rtrim(getenv('SUPABASE_URL')?:($config['url']??''),'/'); $key=getenv('SUPABASE_KEY')?:($config['key']??'');
