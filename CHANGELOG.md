@@ -52,3 +52,9 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 
 ## v1.0.6.1
 - Edição administrativa de nome, telefone, e-mail e senha opcional; sincronização Auth/perfil por migration.
+
+## v1.0.6.2
+- Nome ONG Amicão Muriaé na marca e metadados; título de login Central de adoção.
+- Mostrar/ocultar a senha digitada no login, criação e edição de usuários.
+- Lista de usuários compacta, responsiva, com identidade, contatos, perfil, status e ações alinhadas.
+- Cache busting dos assets. Sem migration nova ou alterações de autenticação.

@@ -43,3 +43,16 @@ const gallery=document.getElementById('gallery-dialog');
 for(const link of document.querySelectorAll('.gallery-link')) link.addEventListener('click',e=>{if(typeof gallery.showModal!=='function')return;e.preventDefault();gallery.querySelector('img').src=link.href;gallery.showModal();});
 document.getElementById('gallery-close').addEventListener('click',()=>gallery.close());
 gallery.addEventListener('close',()=>gallery.querySelector('img').removeAttribute('src'));
+
+// Password visibility: only the value typed in this form, never stored credentials.
+for (const toggle of document.querySelectorAll('.password-toggle')) {
+  const field = document.getElementById(toggle.getAttribute('aria-controls'));
+  if (!field) continue;
+  toggle.hidden = false;
+  toggle.addEventListener('click', () => {
+    const visible = field.type === 'password';
+    field.type = visible ? 'text' : 'password';
+    toggle.setAttribute('aria-pressed', String(visible));
+    toggle.setAttribute('aria-label', visible ? 'Ocultar senha' : 'Mostrar senha');
+  });
+}
