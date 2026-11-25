@@ -18,7 +18,23 @@ if($p&&$page==='image'){$id=uuid($_GET['id']??'');$r=api('GET','record_images?id
 }catch(Throwable $e){$error=$e instanceof RuntimeException?$e->getMessage():'Não foi possível concluir a operação.';}
 $flash=$_SESSION['flash']??'';unset($_SESSION['flash']);
 ?>
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Amicão | Gestão de adoções</title><link rel="stylesheet" href="assets/style.css?v=1043"><script defer src="assets/app.js?v=104"></script></head><body>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Amicão Muriaé | Gestão de Adoção Responsável</title>
+
+<meta name="description" content="Central de gestão de adoções responsáveis e proteção animal.">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ONG Amicão Muriaé">
+<meta property="og:title" content="Amicão Muriaé | Gestão de Adoção Responsável">
+<meta property="og:description" content="Proteção, cuidado e responsabilidade.">
+<meta property="og:url" content="https://rsdigitallab.com/amicao/">
+
+<meta property="og:image" content="https://rsdigitallab.com/amicao/assets/img/og-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:locale" content="pt_BR">
+
+<meta name="twitter:card" content="summary_large_image"><title>Amicão | Gestão de adoções</title><link rel="stylesheet" href="assets/style.css?v=1043"><script defer src="assets/app.js?v=104"></script></head><body>
 <?php if(!$p): ?><main class="login"><section class="panel"><img class="logo large" src="assets/logo.png" alt="ONG Amicão Muriaé"><h1>Central de adoção responsável</h1><p>Acesso exclusivo à equipe autorizada.</p><?php if($error):?><div class="error"><?=h($error)?></div><?php endif;?><form method="post"><?=hidden()?><input type="hidden" name="action" value="login"><label>E-mail<input type="email" name="email" autocomplete="username" required></label><label>Senha<input type="password" name="password" autocomplete="current-password" required></label><button>Entrar</button></form><p class="muted">Para recuperar o acesso, procure o administrador.</p></section><footer class="site-footer">Desenvolvido por <a href="https://rsdigitallab.com/" target="_blank" rel="noopener noreferrer">RS Digital Lab</a></footer></main><?php else: ?>
 <aside><div class="brand"><img class="logo" src="assets/logo.png" alt="ONG Amicão"><div><strong>Amicão Muriaé</strong><small>Gestão de adoções</small></div></div><nav><?php foreach(['dashboard'=>'Visão geral','adocao'=>'Adoção responsável','restricao'=>'Lista de restrição','history'=>'Histórico']+($admin?['users'=>'Usuários']:[]) as $k=>$label):?><a class="<?=$page===$k?'selected':''?>" href="?page=<?=$k?>"><span class="nav-icon" aria-hidden="true"><?= ['dashboard'=>'⌂','adocao'=>'♡','restricao'=>'⚑','history'=>'◷','users'=>'♙'][$k] ?></span><?=h($label)?></a><?php endforeach;?></nav><form method="post"><?=hidden()?><button class="secondary" name="action" value="logout">Sair</button></form></aside><main class="workspace"><header><span>Central de gestão</span><span><?=h($p['name']?:($admin?'Administrador':'Usuário'))?> <small class="role"><?=$admin?'Administrador':'Usuário'?></small></span></header><?php if($error):?><div class="error"><?=h($error)?></div><?php endif;?><?php if($flash):?><div class="success"><?=h($flash)?></div><?php endif;?>
 <?php try{ if($page==='dashboard'||in_array($page,['adocao','restricao'],true)):
