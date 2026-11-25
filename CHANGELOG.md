@@ -63,3 +63,8 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 - Mostrar/ocultar a senha digitada no login, criação e edição de usuários.
 - Lista de usuários compacta, responsiva, com identidade, contatos, perfil, status e ações alinhadas.
 - Cache busting dos assets. Sem migration nova ou alterações de autenticação.
+
+## v1.0.6.4
+- Visão geral sem seção Busca de Cadastro e sem consulta de registros/miniaturas; indicadores e novo cadastro preservados.
+- Busca por trecho do nome do tutor, sem distinção de maiúsculas/minúsculas, em cada lista, com paginação e limpar busca.
+- Sem filtros por animal, raça ou cor. Sem migration.
