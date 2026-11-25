@@ -60,3 +60,9 @@ Após a migration 1.0.6, execute database/migration-v1.0.6.1.sql antes de atuali
 
 ## v1.0.6.2 — refinamento visual
 Se a v1.0.6.1 já estiver instalada, substitua somente os arquivos, preserve app/config.php e não execute novas migrations. Teste mostrar/ocultar senha no login, criação e edição (somente valores digitados), botões sem submissão acidental, lista de usuários em desktop e celular, edição e alteração de permissões. Faça deploy e Ctrl+F5. Nenhuma mudança nas políticas ou no banco.
+
+## v1.0.6.3 — busca geral
+- Busca e filtros exclusivos da Visão geral, na seção Busca de Cadastro, abrangendo adoção e restrição.
+- Listas exibem seus registros sem busca ou filtros, mantendo paginação e ações. Parâmetros de busca são ignorados nas listas.
+- Sem migration ou alteração de configuração. Homologar as três páginas e a busca no WAMP antes do deploy.
+

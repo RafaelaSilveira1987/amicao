@@ -1,3 +1,8 @@
+## v1.0.6.3 — busca geral
+- Busca e filtros exclusivos da Visão geral, na seção Busca de Cadastro, abrangendo adoção e restrição.
+- Listas exibem seus registros sem busca ou filtros, mantendo paginação e ações. Parâmetros de busca são ignorados nas listas.
+- Sem migration ou alteração de configuração. Homologar as três páginas e a busca no WAMP antes do deploy.
+
 ## v1.0.4.4
 - Metadados Open Graph e Twitter Card no HTML público do login e favicon.
 - Capa institucional JPEG 1200 × 630 usando logo original; URL pública de produção.
