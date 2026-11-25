@@ -44,3 +44,8 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 - Dashboard: 3 chamadas previstas em sessão válida, consulta de miniatura embutida, RPC de totais com RLS e índices.
 - cURL reutilizado, bloqueio de sessão liberado em GET autenticado, Server-Timing, logo compactada, cache de assets e OPcache no Docker, mensagens de login.
 - Migration obrigatória para banco existente. Homologação real pendente.
+
+## v1.0.6
+- Histórico com data local e nomes preservados.
+- Novo cadastro apenas na visão geral.
+- Criação administrativa de contas via Supabase Auth.
