@@ -41,3 +41,7 @@ O Apache aceita / e /amicao/; /amicao redireciona com 308 para /amicao/. O alias
 
 ## Atualização v1.0.4.3
 Rodapé institucional no login e painel. Preserve app/config.php no WAMP; no EasyPanel faça novo deploy. Sem migration.
+
+
+## Compartilhamento (v1.0.4.4)
+Após novo deploy, teste em janela anônima https://rsdigitallab.com/amicao/assets/og-cover.jpg e confira as tags og:image no código-fonte da tela de login. Compartilhe https://rsdigitallab.com/amicao/?v=1044 para tentar contornar o cache antigo. A URL OG está definida para o domínio de produção no public/index.php; ajuste se mudar o domínio. Nenhuma migration necessária.

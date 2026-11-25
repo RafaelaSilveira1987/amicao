@@ -1,3 +1,8 @@
+## v1.0.4.4
+- Metadados Open Graph e Twitter Card no HTML público do login e favicon.
+- Capa institucional JPEG 1200 × 630 usando logo original; URL pública de produção.
+- Sem alterações no Dockerfile, banco ou regras de negócio.
+
 ## v1.0.4.3
 - Rodapé institucional com crédito Desenvolvido por RS Digital Lab e link para o site, no login e nas páginas autenticadas.
 - CSS responsivo e cache busting. Mantém Dockerfile e SQL da v1.0.4.2.
