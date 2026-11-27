@@ -74,3 +74,10 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 - Removido o subtítulo Gestão de adoções do menu lateral.
 - Visão geral compactada em desktop, com rolagem natural em telas menores e conteúdo excedente.
 - Cache CSS atualizado. Sem migration.
+
+## v1.0.7
+- Ampliação do cadastro com novos campos da entrevista e do animal.
+- Remoção do link complementar.
+- Limite de 2 imagens por cadastro com exclusão individual.
+- Exportação CSV compatível com Excel nas listas.
+- Formulário de novo usuário oculto por botão.
