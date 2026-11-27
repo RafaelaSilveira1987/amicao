@@ -91,3 +91,9 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 - Consulta compartilhada de cadastro e galeria nas telas de visualização e edição.
 - Fallback de edição sem galeria quando a consulta integrada falhar.
 - Sem alterações de RLS ou schema. Homologação real pendente.
+
+## v1.0.7.3
+- Loader de login com logo original, aro animado e progresso estimado até 95%.
+- 100% somente após confirmação do login e do perfil ativo no servidor; dashboard abre em seguida.
+- Erros fecham o loader e preservam o formulário. POST tradicional continua disponível sem JavaScript.
+- Sem mudanças no banco, RLS ou Dockerfile. Teste real no Supabase pendente.

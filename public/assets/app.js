@@ -104,3 +104,58 @@ if (toggleUserForm && newUserPanel) {
     }
   });
 }
+
+// v1.0.7.3: progress is estimated until the server confirms authentication.
+const loginForm = document.getElementById('login-form');
+const loginLoader = document.getElementById('login-loader');
+if (loginForm && loginLoader && typeof loginLoader.showModal === 'function' && typeof fetch === 'function') {
+  const submit = loginForm.querySelector('button:not([type])');
+  const errorBox = document.getElementById('login-error');
+  const progress = document.getElementById('login-progress');
+  const percent = document.getElementById('login-percent');
+  const status = document.getElementById('login-loader-status');
+  let busy = false;
+  let timer;
+  const setProgress = n => { progress.value = n; percent.textContent = `${n}%`; };
+  loginLoader.addEventListener('cancel', event => event.preventDefault());
+  loginForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (busy) return;
+    busy = true;
+    const data = new FormData(loginForm);
+    submit.disabled = true;
+    errorBox.hidden = true;
+    status.textContent = 'Aguarde a confirmação do acesso.';
+    setProgress(0);
+    loginLoader.showModal();
+    const start = performance.now();
+    timer = setInterval(() => {
+      setProgress(Math.min(95, Math.floor(95 * (1 - Math.exp(-(performance.now() - start) / 1800)))));
+    }, 100);
+    try {
+      const response = await fetch(location.href, { method: 'POST', body: data, credentials: 'same-origin', headers: { 'X-Amicao-Login': '1', 'Accept': 'application/json' }, cache: 'no-store', redirect: 'error' });
+      const result = await response.json();
+      if (!response.ok || result.ok !== true) throw new Error(typeof result.message === 'string' && result.message ? result.message : 'Não foi possível confirmar o acesso.');
+      clearInterval(timer);
+      setProgress(100);
+      status.textContent = 'Acesso confirmado! Abrindo painel…';
+      // Keep the overlay visible during the normal dashboard navigation.
+      setTimeout(() => location.assign('?page=dashboard'), 250);
+    } catch (error) {
+      clearInterval(timer);
+      loginLoader.close();
+      busy = false;
+      submit.disabled = false;
+      errorBox.textContent = error instanceof SyntaxError || error instanceof TypeError ? 'Não foi possível confirmar a resposta do servidor. Verifique a conexão e tente novamente.' : error.message;
+      errorBox.hidden = false;
+      submit.focus();
+    }
+  });
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted) return;
+    clearInterval(timer);
+    if (loginLoader.open) loginLoader.close();
+    busy = false;
+    submit.disabled = false;
+  });
+}

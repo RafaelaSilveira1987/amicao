@@ -31,6 +31,17 @@ $p = profile();
 $page = $_GET['page'] ?? 'dashboard';
 $error = '';
 $admin = ($p['role'] ?? '') === 'admin';
+$asyncLogin = $_SERVER['REQUEST_METHOD'] === 'POST'
+    && ($_POST['action'] ?? '') === 'login'
+    && ($_SERVER['HTTP_X_AMICAO_LOGIN'] ?? '') === '1';
+function login_response(bool $ok, string $message = ''): void {
+    if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+    header('Content-Type: application/json; charset=UTF-8');
+    http_response_code($ok ? 200 : 400);
+    performance_headers();
+    echo json_encode(['ok' => $ok, 'message' => $message], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+    exit;
+}
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -50,6 +61,7 @@ try {
                 $_SESSION = [];
                 throw new RuntimeException('Acesso ainda não liberado. Procure o administrador.');
             }
+            if ($asyncLogin) login_response(true);
             redirect();
         }
 
@@ -250,6 +262,7 @@ try {
     }
 } catch (Throwable $e) {
     $error = $e instanceof RuntimeException ? $e->getMessage() : 'Não foi possível concluir a operação.';
+    if ($asyncLogin) login_response(false, $error);
 }
 
 $flash = $_SESSION['flash'] ?? '';
@@ -301,8 +314,8 @@ function renderField(string $key, array $meta, array $record): string {
 <meta name="twitter:description" content="Proteção, cuidado e responsabilidade.">
 <meta name="twitter:image" content="https://rsdigitallab.com/amicao/assets/og-cover.jpg">
 <link rel="icon" type="image/png" href="assets/logo.png?v=1072">
-<link rel="stylesheet" href="assets/style.css?v=1072">
-<script defer src="assets/app.js?v=1072"></script>
+<link rel="stylesheet" href="assets/style.css?v=1073">
+<script defer src="assets/app.js?v=1073"></script>
 </head>
 <body>
 <?php if (!$p): ?>
@@ -311,8 +324,8 @@ function renderField(string $key, array $meta, array $record): string {
         <img class="logo large" src="assets/logo.png?v=1072" alt="ONG Amicão Muriaé">
         <h1>Central de adoção</h1>
         <p>Acesso exclusivo à equipe autorizada.</p>
-        <?php if ($error): ?><div class="error"><?= h($error) ?></div><?php endif; ?>
-        <form method="post">
+        <div id="login-error" class="error" role="alert" <?= $error ? '' : 'hidden' ?>><?= h($error) ?></div>
+        <form method="post" id="login-form">
             <?= hidden() ?>
             <input type="hidden" name="action" value="login">
             <label>E-mail<input type="email" name="email" autocomplete="username" required></label>
@@ -331,6 +344,16 @@ function renderField(string $key, array $meta, array $record): string {
     </section>
     <footer class="site-footer">Desenvolvido por <a href="https://rsdigitallab.com/" target="_blank" rel="noopener noreferrer">RS Digital Lab</a></footer>
 </main>
+<dialog id="login-loader" aria-labelledby="login-loader-title" aria-describedby="login-loader-status">
+    <div class="login-loader-content">
+        <div class="login-loader-ring"><img src="assets/logo.png?v=1072" alt="ONG Amicão Muriaé"></div>
+        <h2 id="login-loader-title">Acessando o Amicão</h2>
+        <p id="login-loader-status" role="status">Aguarde a confirmação do acesso.</p>
+        <progress id="login-progress" max="100" value="0" aria-label="Progresso estimado do login"></progress>
+        <strong id="login-percent" aria-hidden="true">0%</strong>
+        <small>ONG Amicão Muriaé</small>
+    </div>
+</dialog>
 <?php else: ?>
 <aside>
     <div class="brand">

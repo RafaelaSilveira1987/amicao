@@ -75,3 +75,6 @@ Preserve app/config.php. Não execute migration nova. Visão geral mostra os ind
 - Removido o subtítulo Gestão de adoções do menu lateral.
 - Visão geral compactada em desktop, com rolagem natural em telas menores e conteúdo excedente.
 - Cache CSS atualizado. Sem migration.
+
+### Homologação v1.0.7.3 — loader de login
+Preserve `app/config.php`. Não há migration adicional. Teste login válido, senha incorreta, envio por Enter, duplo clique, conexão lenta e celular. A porcentagem é uma estimativa visual até 95%; 100% indica autenticação e perfil ativo confirmados, não o carregamento integral do dashboard. O modal permanece durante a navegação. Sem JavaScript, o formulário usa o POST tradicional.
