@@ -8,6 +8,6 @@ RUN a2enmod rewrite alias expires headers deflate \
 RUN printf '%s\n' '<Directory /var/www/html/public/assets>' '    ExpiresActive On' '    ExpiresDefault "access plus 1 hour"' '</Directory>' 'AddOutputFilterByType DEFLATE text/html text/css application/javascript text/javascript application/json' > /etc/apache2/conf-available/amicao-performance.conf \
     && a2enconf amicao-performance
 COPY . /var/www/html/
-RUN printf 'upload_max_filesize=5M\npost_max_size=7M\n' > /usr/local/etc/php/conf.d/amicao.ini \
+RUN printf 'upload_max_filesize=5M\npost_max_size=12M\n' > /usr/local/etc/php/conf.d/amicao.ini \
     && apache2ctl configtest
 EXPOSE 80

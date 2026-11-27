@@ -159,3 +159,40 @@ if (loginForm && loginLoader && typeof loginLoader.showModal === 'function' && t
     submit.disabled = false;
   });
 }
+
+// v1.0.7.4 — native page navigation feedback, without delaying navigation.
+for (const input of document.querySelectorAll('[data-new-photo]')) {
+  input.addEventListener('change', () => {
+    const file = input.files[0];
+    input.setCustomValidity(file && file.size > 5242880 ? 'Selecione uma imagem de até 5 MB.' : '');
+    input.parentElement.querySelector('.file-info').textContent = file ? `${file.name} · ${(file.size / 1048576).toFixed(2)} MB` : '';
+    if (!input.checkValidity()) input.reportValidity();
+  });
+}
+const pageLoader = document.getElementById('page-loader');
+if (pageLoader) {
+  let timeout;
+  const hide = () => { clearTimeout(timeout); pageLoader.hidden = true; };
+  const show = (message) => {
+    pageLoader.querySelector('#page-loader-text').textContent = message;
+    pageLoader.hidden = false;
+    clearTimeout(timeout);
+    // Recover the UI if navigation is canceled or interrupted.
+    timeout = setTimeout(hide, 120000);
+  };
+  document.addEventListener('click', e => {
+    if (e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest('a[href]');
+    if (!a || a.hasAttribute('download') || (a.target && a.target !== '_self')) return;
+    const dest = new URL(a.href, location.href);
+    if (dest.origin !== location.origin || dest.pathname !== location.pathname || !dest.searchParams.has('page') || ['export','image'].includes(dest.searchParams.get('page'))) return;
+    show('Carregando…');
+  });
+  document.addEventListener('submit', e => {
+    if (e.defaultPrevented || e.target.id === 'login-form') return;
+    const form = e.target;
+    if (form.target && form.target !== '_self') return;
+    show(form.method.toLowerCase() === 'post' ? 'Processando…' : 'Carregando…');
+  });
+  window.addEventListener('pageshow', hide);
+}

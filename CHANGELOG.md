@@ -97,3 +97,9 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 - 100% somente após confirmação do login e do perfil ativo no servidor; dashboard abre em seguida.
 - Erros fecham o loader e preservam o formulário. POST tradicional continua disponível sem JavaScript.
 - Sem mudanças no banco, RLS ou Dockerfile. Teste real no Supabase pendente.
+
+## v1.0.7.4
+- Fotos opcionais no novo cadastro, até duas de 5 MB.
+- Aviso de envio parcial sem duplicar cadastro.
+- Indicador animado de navegação e operações internas.
+- Limite POST de 12 MB no Dockerfile.

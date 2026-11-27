@@ -43,10 +43,46 @@ function login_response(bool $ok, string $message = ''): void {
     exit;
 }
 
+function validate_photo(array $f): array {
+            if (($f['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+                throw new RuntimeException(match ($f['error'] ?? UPLOAD_ERR_NO_FILE) {
+                    UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Arquivo acima do limite de upload do PHP. Configure upload_max_filesize=5M e post_max_size=12M.',
+                    UPLOAD_ERR_PARTIAL => 'Envio incompleto. Tente novamente.',
+                    UPLOAD_ERR_NO_FILE => 'Selecione uma imagem.',
+                    UPLOAD_ERR_NO_TMP_DIR, UPLOAD_ERR_CANT_WRITE => 'O PHP não conseguiu gravar o arquivo temporário. Confira o WAMP.',
+                    default => 'O PHP recusou o envio da imagem.',
+                });
+            }
+            if (!is_uploaded_file($f['tmp_name']) || $f['size'] > 5242880 || $f['size'] === 0) {
+                throw new RuntimeException('Selecione uma imagem válida de até 5 MB.');
+            }
+            $mime = (new finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name']);
+            $ext = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'][$mime] ?? null;
+            if (!$ext || !getimagesize($f['tmp_name'])) {
+                throw new RuntimeException('Formato de imagem inválido.');
+            }
+    return ['tmp_name'=>$f['tmp_name'], 'size'=>$f['size'], 'mime'=>$mime, 'ext'=>$ext];
+}
+function store_photo(string $id, array $f): void {
+    $mime=$f['mime']; $ext=$f['ext'];
+            $path = $id . '/' . bin2hex(random_bytes(16)) . '.' . $ext;
+            $bytes = file_get_contents($f['tmp_name']);
+            if ($bytes === false || strlen($bytes) !== (int)$f['size']) {
+                throw new RuntimeException('Não foi possível ler a imagem temporária.');
+            }
+            req('POST', '/storage/v1/object/amicao-images/' . $path, $bytes, $_SESSION['access'], $mime, true);
+            try {
+                api('POST', 'record_images', ['record_id' => $id, 'path' => $path]);
+            } catch (Throwable $e) {
+                try { req('DELETE', '/storage/v1/object/amicao-images', ['prefixes' => [$path]], $_SESSION['access']); } catch (Throwable $ignored) {}
+                throw $e;
+            }
+}
+
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($_POST) && !empty($_SERVER['CONTENT_LENGTH'])) {
-            throw new RuntimeException('Envio excede post_max_size do PHP. Configure 7M e reinicie o WAMP.');
+            throw new RuntimeException('Envio excede post_max_size do PHP. Configure 12M e reinicie o WAMP.');
         }
         checkcsrf();
         $action = $_POST['action'] ?? '';
@@ -86,6 +122,13 @@ try {
                 $data[$key] = $value === '' ? null : $value;
             }
             $id = $_POST['id'] ?? '';
+            $photos = [];
+            if (!$id) {
+                foreach (['photo_1','photo_2'] as $slot) {
+                    $file = $_FILES[$slot] ?? [];
+                    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) $photos[] = validate_photo($file);
+                }
+            }
             if ($id) {
                 $id = uuid($id);
                 $result = api('PATCH', 'records?id=eq.' . $id . '&deleted_at=is.null', $data);
@@ -97,7 +140,12 @@ try {
             if (!$result) {
                 throw new RuntimeException('Cadastro não encontrado ou sem permissão.');
             }
-            $_SESSION['flash'] = 'Cadastro salvo.';
+            $savedPhotos = 0;
+            foreach ($photos as $photo) {
+                try { store_photo(uuid($id), $photo); $savedPhotos++; }
+                catch (Throwable $e) { $_SESSION['photo_warning'] = 'Cadastro salvo. Uma ou mais imagens não foram enviadas. Confira a galeria e tente novamente. Imagens enviadas: ' . $savedPhotos . '/' . count($photos) . '.'; break; }
+            }
+            $_SESSION['flash'] = 'Cadastro salvo.' . ($savedPhotos ? ' Imagens adicionadas: ' . $savedPhotos . '.' : '');
             redirect('edit&id=' . $id);
         }
 
@@ -128,40 +176,10 @@ try {
             if (count($existing) >= 2) {
                 throw new RuntimeException('Cada cadastro pode ter no máximo 2 imagens. Remova uma imagem antes de enviar outra.');
             }
-            $f = $_FILES['image'] ?? [];
-            if (($f['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-                throw new RuntimeException(match ($f['error'] ?? UPLOAD_ERR_NO_FILE) {
-                    UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Arquivo acima do limite de upload do PHP. Configure upload_max_filesize=5M e post_max_size=7M.',
-                    UPLOAD_ERR_PARTIAL => 'Envio incompleto. Tente novamente.',
-                    UPLOAD_ERR_NO_FILE => 'Selecione uma imagem.',
-                    UPLOAD_ERR_NO_TMP_DIR, UPLOAD_ERR_CANT_WRITE => 'O PHP não conseguiu gravar o arquivo temporário. Confira o WAMP.',
-                    default => 'O PHP recusou o envio da imagem.',
-                });
-            }
-            if (!is_uploaded_file($f['tmp_name']) || $f['size'] > 5242880 || $f['size'] === 0) {
-                throw new RuntimeException('Selecione uma imagem válida de até 5 MB.');
-            }
-            $mime = (new finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name']);
-            $ext = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'][$mime] ?? null;
-            if (!$ext || !getimagesize($f['tmp_name'])) {
-                throw new RuntimeException('Formato de imagem inválido.');
-            }
+            $f = validate_photo($_FILES['image'] ?? []);
             $record = api('GET', 'records?id=eq.' . $id . '&deleted_at=is.null&select=id');
-            if (!$record) {
-                throw new RuntimeException('Cadastro indisponível para imagens.');
-            }
-            $path = $id . '/' . bin2hex(random_bytes(16)) . '.' . $ext;
-            $bytes = file_get_contents($f['tmp_name']);
-            if ($bytes === false || strlen($bytes) !== (int)$f['size']) {
-                throw new RuntimeException('Não foi possível ler a imagem temporária.');
-            }
-            req('POST', '/storage/v1/object/amicao-images/' . $path, $bytes, $_SESSION['access'], $mime, true);
-            try {
-                api('POST', 'record_images', ['record_id' => $id, 'path' => $path]);
-            } catch (Throwable $e) {
-                try { req('DELETE', '/storage/v1/object/amicao-images', ['prefixes' => [$path]], $_SESSION['access']); } catch (Throwable $ignored) {}
-                throw $e;
-            }
+            if (!$record) throw new RuntimeException('Cadastro indisponível para imagens.');
+            store_photo($id, $f);
             $_SESSION['flash'] = 'Imagem adicionada.';
             redirect('edit&id=' . $id);
         }
@@ -265,6 +283,7 @@ try {
     if ($asyncLogin) login_response(false, $error);
 }
 
+$photoWarning = $_SESSION['photo_warning'] ?? ''; unset($_SESSION['photo_warning']);
 $flash = $_SESSION['flash'] ?? '';
 unset($_SESSION['flash']);
 if ($p && $_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -314,8 +333,8 @@ function renderField(string $key, array $meta, array $record): string {
 <meta name="twitter:description" content="Proteção, cuidado e responsabilidade.">
 <meta name="twitter:image" content="https://rsdigitallab.com/amicao/assets/og-cover.jpg">
 <link rel="icon" type="image/png" href="assets/logo.png?v=1072">
-<link rel="stylesheet" href="assets/style.css?v=1073">
-<script defer src="assets/app.js?v=1073"></script>
+<link rel="stylesheet" href="assets/style.css?v=1074">
+<script defer src="assets/app.js?v=1074"></script>
 </head>
 <body>
 <?php if (!$p): ?>
@@ -371,6 +390,7 @@ function renderField(string $key, array $meta, array $record): string {
     <header><span>Central de gestão</span><span><?= h($p['name'] ?: ($admin ? 'Administrador' : 'Usuário')) ?> <small class="role"><?= $admin ? 'Administrador' : 'Usuário' ?></small></span></header>
     <?php if ($error): ?><div class="error"><?= h($error) ?></div><?php endif; ?>
     <?php if ($flash): ?><div class="success"><?= h($flash) ?></div><?php endif; ?>
+    <?php if ($photoWarning): ?><div class="error"><?= h($photoWarning) ?></div><?php endif; ?>
 
     <?php try { ?>
         <?php if ($page === 'dashboard' || in_array($page, ['adocao', 'restricao'], true)): ?>
@@ -500,7 +520,7 @@ function renderField(string $key, array $meta, array $record): string {
             ?>
             <div class="heading"><div><h1><?= $id ? 'Editar cadastro' : 'Novo cadastro' ?></h1><p>Todos os campos informativos são opcionais.</p></div><a href="?page=<?= h($cat) ?>">← Voltar</a></div>
             <section class="panel">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data" class="record-save-form">
                     <?= hidden() ?>
                     <input type="hidden" name="action" value="save">
                     <input type="hidden" name="id" value="<?= h($id) ?>">
@@ -514,6 +534,12 @@ function renderField(string $key, array $meta, array $record): string {
                             <?= renderField($key, $meta, $r ?: []) ?>
                         <?php endforeach; ?>
                     </div>
+                    <?php if (!$id): ?>
+                    <fieldset class="new-photos"><legend>Imagens (opcional)</legend><p>Até 2 imagens por cadastro, JPG, PNG ou WEBP, até 5 MB cada.</p><div class="formgrid">
+                    <?php foreach (['photo_1'=>'Imagem 1','photo_2'=>'Imagem 2'] as $slot=>$label): ?>
+                    <label><?= h($label) ?><input type="file" name="<?= h($slot) ?>" accept="image/jpeg,image/png,image/webp" data-new-photo><small class="file-info" aria-live="polite"></small></label>
+                    <?php endforeach; ?></div></fieldset>
+                    <?php endif; ?>
                     <button>Salvar cadastro</button>
                 </form>
             </section>
@@ -624,6 +650,7 @@ function renderField(string $key, array $meta, array $record): string {
 
 <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-description"><div class="dialog-content"><div class="dialog-symbol" aria-hidden="true">↔</div><h2 id="confirm-title">Confirmar movimentação</h2><p id="confirm-description"></p><div class="dialog-actions"><button type="button" class="secondary" id="confirm-cancel" autofocus>Cancelar</button><button type="button" id="confirm-accept">Confirmar</button></div></div></dialog>
 <dialog id="gallery-dialog" aria-label="Visualização de imagem"><button class="secondary" type="button" id="gallery-close">Fechar ×</button><img alt="Imagem ampliada"></dialog>
+<?php if ($p): ?><div id="page-loader" hidden role="status" aria-live="polite"><span class="page-loader-ring"><svg viewBox="0 0 48 48" width="32" height="32" aria-hidden="true" fill="currentColor"><ellipse cx="10" cy="17" rx="5" ry="7" transform="rotate(-25 10 17)"/><ellipse cx="20" cy="10" rx="5" ry="7"/><ellipse cx="32" cy="10" rx="5" ry="7"/><ellipse cx="40" cy="20" rx="5" ry="7" transform="rotate(25 40 20)"/><path d="M10 34C10 26 19 20 25 20S40 27 40 35C40 45 30 41 25 40S10 45 10 34Z"/></svg></span><span id="page-loader-text">Carregando…</span></div><?php endif; ?>
 </body>
 </html>
 <?php performance_headers(); ob_end_flush(); ?>
