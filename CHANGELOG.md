@@ -81,3 +81,8 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 - Limite de 2 imagens por cadastro com exclusão individual.
 - Exportação CSV compatível com Excel nas listas.
 - Formulário de novo usuário oculto por botão.
+
+## v1.0.7.1
+- Movimentação independente da consulta de imagens; erro da galeria isolado.
+- Diagnóstico de códigos PostgREST sem expor credenciais.
+- Sem migration adicional.
