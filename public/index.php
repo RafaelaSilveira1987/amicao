@@ -300,15 +300,15 @@ function renderField(string $key, array $meta, array $record): string {
 <meta name="twitter:title" content="ONG Amicão Muriaé | Gestão de adoções">
 <meta name="twitter:description" content="Proteção, cuidado e responsabilidade.">
 <meta name="twitter:image" content="https://rsdigitallab.com/amicao/assets/og-cover.jpg">
-<link rel="icon" type="image/png" href="assets/logo.png?v=1071">
-<link rel="stylesheet" href="assets/style.css?v=1071">
-<script defer src="assets/app.js?v=1071"></script>
+<link rel="icon" type="image/png" href="assets/logo.png?v=1072">
+<link rel="stylesheet" href="assets/style.css?v=1072">
+<script defer src="assets/app.js?v=1072"></script>
 </head>
 <body>
 <?php if (!$p): ?>
 <main class="login">
     <section class="panel">
-        <img class="logo large" src="assets/logo.png?v=1071" alt="ONG Amicão Muriaé">
+        <img class="logo large" src="assets/logo.png?v=1072" alt="ONG Amicão Muriaé">
         <h1>Central de adoção</h1>
         <p>Acesso exclusivo à equipe autorizada.</p>
         <?php if ($error): ?><div class="error"><?= h($error) ?></div><?php endif; ?>
@@ -334,7 +334,7 @@ function renderField(string $key, array $meta, array $record): string {
 <?php else: ?>
 <aside>
     <div class="brand">
-        <img class="logo" src="assets/logo.png?v=1071" alt="ONG Amicão">
+        <img class="logo" src="assets/logo.png?v=1072" alt="ONG Amicão">
         <div><strong>ONG Amicão Muriaé</strong></div>
     </div>
     <nav>
@@ -396,7 +396,7 @@ function renderField(string $key, array $meta, array $record): string {
             </div>
 
             <?php if ($page === 'dashboard'): ?>
-                <section class="welcome"><div><small>ONG AMICÃO MURIAÉ</small><h2>Cuidar é transformar vidas.</h2><p>Organize os registros e acompanhe as adoções responsáveis.</p></div><img src="assets/logo.png?v=1071" alt="" class="logo large"></section>
+                <section class="welcome"><div><small>ONG AMICÃO MURIAÉ</small><h2>Cuidar é transformar vidas.</h2><p>Organize os registros e acompanhe as adoções responsáveis.</p></div><img src="assets/logo.png?v=1072" alt="" class="logo large"></section>
                 <div class="metrics">
                     <a class="metric adocao" href="?page=adocao"><span class="metric-icon">♡</span><span>Adoções responsáveis</span><strong><?= h($counts['adocao']) ?></strong><small>Consultar registros →</small></a>
                     <a class="metric restricao" href="?page=restricao"><span class="metric-icon">⚑</span><span>Lista de restrição</span><strong><?= h($counts['restricao']) ?></strong><small>Consultar registros →</small></a>
@@ -436,7 +436,7 @@ function renderField(string $key, array $meta, array $record): string {
         <?php elseif ($page === 'view'): ?>
             <?php
             $id = uuid($_GET['id'] ?? '');
-            $r = api('GET', 'records?id=eq.' . $id . '&deleted_at=is.null')[0] ?? null;
+            $r = load_record_gallery($id);
             if (!$r) throw new RuntimeException('Cadastro indisponível.');
             ?>
             <div class="heading">
@@ -454,7 +454,7 @@ function renderField(string $key, array $meta, array $record): string {
             <section class="panel">
                 <h2>Imagens</h2>
                 <div class="photos">
-                    <?php $images = api('GET', 'record_images?record_id=eq.' . $id . '&order=created_at.desc'); ?>
+                    <?php $images = $r['record_images'] ?? []; ?>
                     <?php foreach ($images as $im): ?>
                         <a class="gallery-link" href="?page=image&id=<?= h($im['id']) ?>" target="_blank" rel="noopener"><img src="?page=image&id=<?= h($im['id']) ?>" alt="Imagem do cadastro" loading="lazy"></a>
                     <?php endforeach; ?>
@@ -465,7 +465,13 @@ function renderField(string $key, array $meta, array $record): string {
         <?php elseif ($page === 'edit'): ?>
             <?php
             $id = isset($_GET['id']) ? uuid($_GET['id']) : '';
-            $r = $id ? (api('GET', 'records?id=eq.' . $id . '&deleted_at=is.null')[0] ?? null) : [];
+            // Preserve editing and movement even if the embedded gallery fails.
+            $galleryError = null;
+            try { $r = $id ? load_record_gallery($id) : []; }
+            catch (Throwable $e) {
+                $galleryError = $e instanceof RuntimeException ? $e->getMessage() : 'Galeria indisponível.';
+                $r = $id ? (api('GET', 'records?id=eq.' . $id . '&deleted_at=is.null')[0] ?? null) : [];
+            }
             if ($id && !$r) throw new RuntimeException('Cadastro indisponível.');
             $cat = $r['category'] ?? (($_GET['category'] ?? '') === 'restricao' ? 'restricao' : 'adocao');
             ?>
@@ -490,7 +496,7 @@ function renderField(string $key, array $meta, array $record): string {
             </section>
             <?php if ($id): ?>
                 <section class="panel"><h2>Movimentação</h2><form method="post" class="actions" data-confirm="movimentacao"><?= hidden() ?><input type="hidden" name="id" value="<?= h($id) ?>"><button name="action" value="transfer">Transferir para <?= $cat === 'adocao' ? 'restrição' : 'adoção' ?></button><?php if ($admin): ?><button class="danger" name="action" value="archive">Arquivar cadastro</button><?php endif; ?></form></section>
-                <?php try { $images = api('GET', 'record_images?record_id=eq.' . $id . '&order=created_at.desc'); ?>
+                <?php try { if ($galleryError !== null) throw new RuntimeException($galleryError); $images = $r['record_images'] ?? []; ?>
                 <section class="panel">
                     <div class="section-head"><h2>Imagens</h2><span class="muted"><?= count($images) ?>/2 imagem(ns)</span></div>
                     <div class="photos photo-cards">
@@ -520,7 +526,7 @@ function renderField(string $key, array $meta, array $record): string {
                         <p class="muted">Limite de 2 imagens por cadastro atingido. Remova uma imagem para enviar outra.</p>
                     <?php endif; ?>
                 </section>
-                <?php } catch (Throwable $e) { ?><section class="panel"><h2>Imagens</h2><div class="error"><?= h($e instanceof RuntimeException ? $e->getMessage() : 'Galeria indisponível.') ?></div><p>Não foi possível consultar as imagens. Tente novamente após renovar o login.</p></section><?php } ?>
+                <?php } catch (Throwable $e) { ?><section class="panel"><h2>Imagens</h2><div class="error"><?= h($e instanceof RuntimeException ? $e->getMessage() : 'Galeria indisponível.') ?></div><p>Não foi possível consultar as imagens. Os dados e a movimentação continuam disponíveis.</p></section><?php } ?>
             <?php endif; ?>
 
         <?php elseif ($page === 'history'): ?>

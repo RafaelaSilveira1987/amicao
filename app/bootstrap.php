@@ -69,3 +69,10 @@ function edit_team_user(array $input, array $actor): bool {
     if(!$saved||$saved['name']!==$name||(string)$saved['phone']!==$phone||strcasecmp((string)$saved['email'],$email)!==0)throw new RuntimeException('A conta foi atualizada no Auth, mas o perfil não foi confirmado. Confira a migration v1.0.6.1 antes de repetir a operação.');
     return $id===$actor['id']&&($emailChanged||$password!=='');
 }
+
+// Shared RLS-protected read for view and edit. No administrative key.
+function load_record_gallery(string $id): ?array {
+    $id = uuid($id);
+    $rows = api('GET', 'records?select=*,record_images(id)&id=eq.' . $id . '&deleted_at=is.null&record_images.order=created_at.desc,id.desc');
+    return $rows[0] ?? null;
+}

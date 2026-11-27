@@ -86,3 +86,8 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 - Movimentação independente da consulta de imagens; erro da galeria isolado.
 - Diagnóstico de códigos PostgREST sem expor credenciais.
 - Sem migration adicional.
+
+## v1.0.7.2
+- Consulta compartilhada de cadastro e galeria nas telas de visualização e edição.
+- Fallback de edição sem galeria quando a consulta integrada falhar.
+- Sem alterações de RLS ou schema. Homologação real pendente.
