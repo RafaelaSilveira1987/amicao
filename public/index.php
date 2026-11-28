@@ -114,12 +114,12 @@ try {
 
         if ($action === 'save') {
             $data = [];
-            foreach ($fieldDefs as $key => $meta) {
-                $value = trim((string)($_POST[$key] ?? ''));
+            foreach ($fieldDefs as $fieldKey => $meta) {
+                $value = trim((string)($_POST[$fieldKey] ?? ''));
                 if (strlen($value) > 10000) {
                     throw new RuntimeException('Campo muito longo.');
                 }
-                $data[$key] = $value === '' ? null : $value;
+                $data[$fieldKey] = $value === '' ? null : $value;
             }
             $id = $_POST['id'] ?? '';
             $photos = [];
@@ -290,23 +290,23 @@ if ($p && $_SERVER['REQUEST_METHOD'] === 'GET') {
     session_write_close();
 }
 
-function renderField(string $key, array $meta, array $record): string {
+function renderField(string $fieldKey, array $meta, array $record): string {
     $label = h($meta['label']);
-    $value = h($record[$key] ?? '');
+    $value = h($record[$fieldKey] ?? '');
     $inputmode = isset($meta['inputmode']) ? ' inputmode="' . h($meta['inputmode']) . '"' : '';
     if (($meta['type'] ?? '') === 'textarea') {
-        return '<label>' . $label . '<textarea name="' . h($key) . '" rows="3">' . $value . '</textarea></label>';
+        return '<label>' . $label . '<textarea name="' . h($fieldKey) . '" rows="3">' . $value . '</textarea></label>';
     }
     if (isset($meta['options'])) {
         $options = '<option value="">Selecione</option>';
         foreach ($meta['options'] as $option) {
             if ($option === '') continue;
-            $selected = ($record[$key] ?? '') === $option ? ' selected' : '';
+            $selected = ($record[$fieldKey] ?? '') === $option ? ' selected' : '';
             $options .= '<option value="' . h($option) . '"' . $selected . '>' . h($option) . '</option>';
         }
-        return '<label>' . $label . '<select name="' . h($key) . '">' . $options . '</select></label>';
+        return '<label>' . $label . '<select name="' . h($fieldKey) . '">' . $options . '</select></label>';
     }
-    return '<label>' . $label . '<input name="' . h($key) . '" value="' . $value . '"' . $inputmode . ' maxlength="1000"></label>';
+    return '<label>' . $label . '<input name="' . h($fieldKey) . '" value="' . $value . '"' . $inputmode . ' maxlength="1000"></label>';
 }
 ?>
 <!doctype html>
@@ -517,6 +517,10 @@ function renderField(string $key, array $meta, array $record): string {
             }
             if ($id && !$r) throw new RuntimeException('Cadastro indisponível.');
             $cat = $r['category'] ?? (($_GET['category'] ?? '') === 'restricao' ? 'restricao' : 'adocao');
+            if ($error && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save' && (string)($_POST['id'] ?? '') === $id) {
+                foreach ($fieldDefs as $fieldKey => $meta) { if (isset($_POST[$fieldKey]) && is_string($_POST[$fieldKey])) $r[$fieldKey] = $_POST[$fieldKey]; }
+                if (!$id) $cat = ($_POST['category'] ?? '') === 'restricao' ? 'restricao' : 'adocao';
+            }
             ?>
             <div class="heading"><div><h1><?= $id ? 'Editar cadastro' : 'Novo cadastro' ?></h1><p>Todos os campos informativos são opcionais.</p></div><a href="?page=<?= h($cat) ?>">← Voltar</a></div>
             <section class="panel">
@@ -530,11 +534,12 @@ function renderField(string $key, array $meta, array $record): string {
                         <p class="tag <?= h($cat) ?>"><?= $cat === 'adocao' ? 'Adoção responsável' : 'Restrição' ?></p>
                     <?php endif; ?>
                     <div class="formgrid">
-                        <?php foreach ($fieldDefs as $key => $meta): ?>
-                            <?= renderField($key, $meta, $r ?: []) ?>
+                        <?php foreach ($fieldDefs as $fieldKey => $meta): ?>
+                            <?= renderField($fieldKey, $meta, $r ?: []) ?>
                         <?php endforeach; ?>
                     </div>
                     <?php if (!$id): ?>
+                    <?php if ($error && ($_POST['action'] ?? '') === 'save'): ?><p class="muted">Selecione novamente as imagens antes de reenviar.</p><?php endif; ?>
                     <fieldset class="new-photos"><legend>Imagens (opcional)</legend><p>Até 2 imagens por cadastro, JPG, PNG ou WEBP, até 5 MB cada.</p><div class="formgrid">
                     <?php foreach (['photo_1'=>'Imagem 1','photo_2'=>'Imagem 2'] as $slot=>$label): ?>
                     <label><?= h($label) ?><input type="file" name="<?= h($slot) ?>" accept="image/jpeg,image/png,image/webp" data-new-photo><small class="file-info" aria-live="polite"></small></label>

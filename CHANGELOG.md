@@ -103,3 +103,8 @@ Base inicial: login, perfis, listas, cadastro opcional, edição, imagens privad
 - Aviso de envio parcial sem duplicar cadastro.
 - Indicador animado de navegação e operações internas.
 - Limite POST de 12 MB no Dockerfile.
+
+## v1.0.7.5
+- Isola URL e chave Supabase em constantes para impedir colisão com variáveis de formulário.
+- Preserva campos de cadastro após erro de salvamento na sessão ativa.
+- Melhora diagnóstico de chave inválida. Sem migration.
